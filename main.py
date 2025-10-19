@@ -11,7 +11,6 @@ from fastapi.responses import RedirectResponse
 app = FastAPI()
 
 CLIENT_ID = os.environ["CLIENT_ID"]
-CLIENT_SECRET = os.environ["CLIENT_SECRET"]
 STATE_KEY = "spotify_auth_state"
 CODE_VERIFIER_KEY = "spotify_code_verifier"
 URI = os.environ["URI"]
@@ -41,8 +40,8 @@ def handle_login( response: Response):
     code_verifier = generate_code_verifier()
     code_challenge = generate_pkce(code_verifier)
     
-    response.set_cookie(key=STATE_KEY, value=state_string)
-    response.set_cookie(key=CODE_VERIFIER_KEY, value=code_verifier)
+    response.set_cookie(key=STATE_KEY, value=state_string, httponly=True, samesite="lax", secure=True)
+    response.set_cookie(key=CODE_VERIFIER_KEY, value=code_verifier, httponly=True, samesite="lax", secure=True)
 
     params = {
         "client_id": client_id,
@@ -85,6 +84,7 @@ def handle_callback(request: Request, response: Response):
         }
 
         api_response = requests.post(token_endpoint, data=params)
+        print(api_response.status_code, api_response.text)
 
         if api_response.status_code == 200:
             result = api_response.json()
@@ -92,14 +92,36 @@ def handle_callback(request: Request, response: Response):
             refresh_token = result["refresh_token"]
 
             response = RedirectResponse(url=URI)
-            response.set_cookie(key="access_token", value=access_token)
-            response.set_cookie(key="refresh_token", value=refresh_token)
+            response.set_cookie(key="access_token", value=access_token, httponly=True, samesite="lax", secure=True)
+            response.set_cookie(key="refresh_token", value=refresh_token, httponly=True, samesite="lax", secure=True)
         else:
             raise HTTPException(status_code=api_response.status_code, detail="Token exchange failed.")
 
         return response
 
 @app.get("/refresh_token")
-def refresh_token(request: Request):
+def refresh_token_route(request: Request, response: Response):
+    grant_type = "refresh_token"
     refresh_token = request.cookies.get("refresh_token")
-    request_string = CLIENT_ID + ":" + CLIENT_SECRET
+    refresh_endpoint = "https://accounts.spotify.com/api/token"
+    client_id = CLIENT_ID
+ 
+    params = {
+        "grant_type": grant_type,
+        "refresh_token": refresh_token,
+        "client_id": client_id 
+    }
+
+    api_response = requests.post(refresh_endpoint, data=params)
+    print(api_response.status_code, api_response.text)
+
+    if api_response.status_code == 200:
+        result = api_response.json()
+        access_token = result["access_token"]
+        refresh_token = result.get("refresh_token", refresh_token)
+        if refresh_token in result:
+            response.set_cookie(key="refresh_token", value=refresh_token, httponly=True, samesite="lax", secure=True)
+    else: 
+        raise HTTPException(status_code=api_response.status_code, detail="Token refresh failed.")
+    
+    return {"access_token": access_token}
