@@ -1,8 +1,5 @@
 import json, sqlite3
 
-import json
-import sqlite3
-
 conn = sqlite3.connect("atp.sqlite")
 conn.execute("PRAGMA foreign_keys = ON;")
 cur = conn.cursor()
@@ -31,16 +28,18 @@ for edition in data:
 
     for event in edition["events"]:
         curator = event["curator"]
+        start_date = event["dates"][0]
+        end_date = event["dates"][1]
 
         cur.execute(
             """
             INSERT INTO events
-            (festival_year_id, curator)
-            VALUES (?, ?)
-            ON CONFLICT(festival_year_id, curator)
+            (festival_year_id, curator, start_date, end_date)
+            VALUES (?, ?, ?, ?)
+            ON CONFLICT(festival_year_id, curator, start_date, end_date)
             DO NOTHING
             """,
-            (festival_year_id, curator)
+            (festival_year_id, curator, start_date, end_date)
         )
 
         cur.execute(
@@ -48,8 +47,10 @@ for edition in data:
             SELECT id FROM events
             WHERE festival_year_id = ?
               AND curator = ?
+              AND start_date = ?
+              AND end_date = ?
             """,
-            (festival_year_id, curator)
+            (festival_year_id, curator, start_date, end_date)
         )
         event_id = cur.fetchone()[0]
 
