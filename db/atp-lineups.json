@@ -1,0 +1,142 @@
+[
+  {
+    "year": 2000,
+    "location": "UK",
+    "events": [
+      {
+        "curator": "Mogwai",
+        "dates": ["2000-04-07", "2000-04-09"],
+        "lineup": [
+          "...And You Will Know Us by the Trail of Dead",
+          "Alfie",
+          "Aphex Twin",
+          "Arab Strap",
+          "Bardo Pond",
+          "Clinic",
+          "Ganger",
+          "Godspeed You! Black Emperor",
+          "Gorky's Zygotic Mynci",
+          "Hood",
+          "Labradford + Pan American",
+          "Laika",
+          "Ligament",
+          "Mice Parade",
+          "Mogwai",
+          "Motor Life Co.",
+          "Pan American",
+          "Plaid",
+          "Plone",
+          "Pram",
+          "Radar Brothers",
+          "Scott 4",
+          "Shellac",
+          "Sigur Rós",
+          "Snow Patrol",
+          "Sonic Youth",
+          "Sophia",
+          "Stereolab",
+          "Super Furry Animals",
+          "Tarwater",
+          "Ten Benson",
+          "The Delgados",
+          "The For Carnation",
+          "The High Llamas",
+          "Two Dollar Guitar",
+          "Wire"
+        ]
+      }
+    ]
+  },
+  {
+    "year": 2001,
+    "location": "UK",
+    "events": [
+      {
+        "curator": "Tortoise",
+        "dates": ["2001-04-06", "2001-04-08"],
+        "lineup": [
+          "Atmosphere",
+          "Autechre",
+          "Boards of Canada",
+          "Broadcast",
+          "Calexico",
+          "Cannibal Ox",
+          "Derek Bailey",
+          "DJ Fred Ones",
+          "EL-P + MURS",
+          "Fred Anderson Trio",
+          "Lambchop",
+          "Mike Ladd",
+          "Mira Calix",
+          "Mr Lif",
+          "Neil Hamburger",
+          "Prefuse 73",
+          "Radian",
+          "Rick Rizzo and Tara Key",
+          "Russell Haswell",
+          "Sun Ra Arkestra",
+          "Television",
+          "The Eternals",
+          "The Ex",
+          "The Sea and Cake",
+          "Tony Allen's Afro Beat",
+          "Tortoise",
+          "US Maple",
+          "Yo La Tengo"
+        ]
+      }
+    ]
+  },
+  {
+    "year": 2002,
+    "location": "UK",
+    "events": [
+      {
+        "curator": "Shellac",
+        "dates": ["2002-04-19", "2002-04-21", "2002-04-26", "2002-04-28"],
+        "lineup": [
+          "Arcwelder",
+          "Blonde Redhead",
+          "Bonnie 'Prince' Billy",
+          "Brick Layer Cake",
+          "Cheap Trick",
+          "Consonant",
+          "Danielson Famile",
+          "David Lovering",
+          "Dead Moon",
+          "Dianogah",
+          "Do Make Say Think",
+          "Godspeed You! Black Emperor",
+          "Flour",
+          "High Dependency Unit",
+          "Lonesome Organist",
+          "Low",
+          "Mark Robinson",
+          "Melt-Banana",
+          "Mission of Burma",
+          "Nina Nastasia",
+          "Oxes",
+          "Plush",
+          "PW Long",
+          "Rachel's",
+          "Robbie Fulks",
+          "Shannon Wright",
+          "Shellac",
+          "Shipping News",
+          "Silkworm",
+          "Smog",
+          "The Breeders",
+          "The Ex Orkest",
+          "The Fall",
+          "The New Year",
+          "The Upper Crust",
+          "Three Second Kiss",
+          "Threnody Ensemble",
+          "Versus",
+          "Wire",
+          "Zeni Geva"
+        ]
+      }
+    ]
+  }
+]
