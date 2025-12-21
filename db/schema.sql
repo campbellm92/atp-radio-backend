@@ -9,9 +9,9 @@ CREATE TABLE festival_years (
 CREATE TABLE events (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     festival_year_id INTEGER NOT NULL,
-    curator TEXT,
-    start_date TEXT,
-    end_date TEXT,
+    curator TEXT NOT NULL,
+    start_date TEXT NOT NULL,
+    end_date TEXT NOT NULL,
     FOREIGN KEY (festival_year_id) REFERENCES festival_years(id)
 );
 
@@ -30,4 +30,4 @@ CREATE TABLE event_artists (
 
 CREATE UNIQUE INDEX IF NOT EXISTS unique_festival_year ON festival_years (year, location);
 
-CREATE UNIQUE INDEX IF NOT EXISTS uniq_event ON events (festival_year_id, curator);
+CREATE UNIQUE INDEX IF NOT EXISTS uniq_event ON events (festival_year_id, curator, start_date, end_date);
