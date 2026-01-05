@@ -27,12 +27,18 @@ def generate_pkce(code_verifier: str) -> str:
     code_challenge = base64.urlsafe_b64encode(sha256_hash).decode("utf-8").rstrip("=")
     return code_challenge
 
+@router.get("/auth/status")
+def auth_status(request: Request):
+    return {
+        "authenticated": bool(request.cookies.get("access_token"))
+    }
+
 @router.get("/")
 def root():
     return {"message": "FastAPI backend is running!"}
 
 @router.get("/login")
-def handle_login( response: Response):
+def handle_login(response: Response):
     client_id = CLIENT_ID
     response_type = "code"
     redirect_uri = REDIRECT_URI
