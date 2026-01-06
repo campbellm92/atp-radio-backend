@@ -3,6 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 from routes import auth, playlist
 
+from spotify.client import start_client, stop_client
+
 load_dotenv()
 
 app = FastAPI()
@@ -21,3 +23,13 @@ app.include_router(playlist.router)
 @app.get("/")
 def root():
     return {"message": "API Radio playlist generator API."}
+
+
+@app.on_event("startup")
+async def startup():
+    await start_client()
+
+
+@app.on_event("shutdown")
+async def shutdown():
+    await stop_client()
