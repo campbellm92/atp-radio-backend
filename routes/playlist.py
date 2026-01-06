@@ -28,7 +28,7 @@ def get_random_artists(request: Request):
     return response
 
 @router.get("/play")
-def play(request: Request):
+async def play(request: Request):
     access_token = request.cookies.get("access_token")
 
     if not access_token:
@@ -53,11 +53,11 @@ def play(request: Request):
         if key in seen:
             continue
 
-        spotify_artist_id = resolve_artist_id(artist_name, access_token)
+        spotify_artist_id = await resolve_artist_id(artist_name, access_token)
         if not spotify_artist_id:
             continue
 
-        track_uri = resolve_artist_to_track_uri(spotify_artist_id, access_token)
+        track_uri = await resolve_artist_to_track_uri(spotify_artist_id, access_token)
         if not track_uri:
             continue
 
