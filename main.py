@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 from routes import auth, playlist
 
-from spotify.client import start_client, stop_client
+from spotify.spotify_http_client import start_client, stop_client
 
 load_dotenv()
 
