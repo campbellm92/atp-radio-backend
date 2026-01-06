@@ -4,6 +4,8 @@ from urllib.parse import urlencode
 from fastapi import APIRouter, Response, Request, HTTPException
 from fastapi.responses import RedirectResponse
 
+from spotify.spotify_http_client import get_client, spotify_semaphore
+
 load_dotenv()
 
 router = APIRouter()
@@ -68,6 +70,7 @@ def handle_login(response: Response):
 
 @router.get("/callback")
 async def handle_callback(request: Request, response: Response):
+    spotify_http_client = get_client()
     client_id = CLIENT_ID
     grant_type = "authorization_code"
     spotify_code = request.query_params.get("code")
@@ -91,7 +94,8 @@ async def handle_callback(request: Request, response: Response):
         "code_verifier": code_verifier
     }
 
-    api_response = requests.post(token_endpoint, data=params)
+    async with spotify_semaphore:
+        api_response = await spotify_http_client.get(token_endpoint, data=params)
     print(api_response.status_code, api_response.text)
 
     if api_response.status_code == 200:
