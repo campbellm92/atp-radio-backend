@@ -1,22 +1,26 @@
-import requests, random
+import random, httpx
 
 from spotify.cache import ARTIST_ID_CACHE, TOP_TRACK_CACHE
+from spotify.spotify_http_client import get_client, spotify_semaphore
 
-def resolve_artist_id(artist_name, access_token):
+async def resolve_artist_id(artist_name, access_token):
+    spotify_http_client = get_client()
+
     key = artist_name.lower().strip()
 
     if key in ARTIST_ID_CACHE:
         return ARTIST_ID_CACHE[key]
 
-    endpoint = "https://api.spotify.com/v1/search"
+    endpoint = "/search"
     headers = {"Authorization": f"Bearer {access_token}"}
     params = {
         "q": artist_name,
         "type": "artist",
         "limit": 1
     }
-    
-    response = requests.get(endpoint, headers=headers, params=params)
+
+    async with spotify_semaphore:
+        response = await spotify_http_client.get(endpoint, headers=headers, params=params)
 
     if response.status_code != 200:
         ARTIST_ID_CACHE[key] = None
@@ -36,11 +40,14 @@ def resolve_artist_id(artist_name, access_token):
 
 
 
-def resolve_artist_to_track_uri(artist_id, access_token):
+async def resolve_artist_to_track_uri(artist_id, access_token):
+
+    spotify_http_client = get_client()
+
     if artist_id in TOP_TRACK_CACHE:
         return TOP_TRACK_CACHE[artist_id]
 
-    endpoint = f"https://api.spotify.com/v1/artists/{artist_id}/top-tracks"
+    endpoint = f"/artists/{artist_id}/top-tracks"
     headers = {
         "Authorization": f"Bearer {access_token}"
     }
@@ -48,7 +55,8 @@ def resolve_artist_to_track_uri(artist_id, access_token):
         "market": "US"
     }
 
-    response = requests.get(endpoint, headers=headers, params=params)
+    async with spotify_semaphore:
+        response = await spotify_http_client.get(endpoint, headers=headers, params=params)
 
     if response.status_code != 200:
         print("Spotify top-tracks error:", response.text)
