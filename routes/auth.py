@@ -29,15 +29,22 @@ def generate_pkce(code_verifier: str) -> str:
     code_challenge = base64.urlsafe_b64encode(sha256_hash).decode("utf-8").rstrip("=")
     return code_challenge
 
+@router.get("/")
+def root():
+    return {"message": "FastAPI backend is running!"}
+
 @router.get("/auth/status")
 def auth_status(request: Request):
     return {
         "authenticated": bool(request.cookies.get("access_token"))
     }
 
-@router.get("/")
-def root():
-    return {"message": "FastAPI backend is running!"}
+@router.get("/auth/token")
+def get_access_token(request: Request):
+    token = request.cookies.get("access_token")
+    if not token:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    return {"access_token": token}
 
 @router.get("/login")
 def handle_login(response: Response):
@@ -95,7 +102,7 @@ async def handle_callback(request: Request, response: Response):
     }
 
     async with spotify_semaphore:
-        api_response = await spotify_http_client.get(token_endpoint, data=params)
+        api_response = await spotify_http_client.post(token_endpoint, data=params)
     print(api_response.status_code, api_response.text)
 
     if api_response.status_code == 200:
