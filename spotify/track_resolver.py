@@ -45,7 +45,9 @@ async def resolve_artist_to_track_uri(artist_id, access_token):
     spotify_http_client = get_client()
 
     if artist_id in TOP_TRACK_CACHE:
-        return TOP_TRACK_CACHE[artist_id]
+        cached = TOP_TRACK_CACHE[artist_id]
+        if isinstance(cached, list):
+            return cached
 
     endpoint = f"/artists/{artist_id}/top-tracks"
     headers = {
@@ -65,13 +67,10 @@ async def resolve_artist_to_track_uri(artist_id, access_token):
     data = response.json()
     tracks = data.get("tracks", [])
 
-    if not tracks:
-        TOP_TRACK_CACHE[artist_id] = None
-        return None
+    uris = [track["uri"] for track in tracks if "uri" in track]
 
-    uri = random.choice(tracks)["uri"]
-    TOP_TRACK_CACHE[artist_id] = uri
-    return [track["uri"] for track in tracks]
+    TOP_TRACK_CACHE[artist_id] = uris
+    return uris
 
 
 
