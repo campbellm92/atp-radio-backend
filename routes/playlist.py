@@ -40,6 +40,7 @@ async def play(request: Request):
     response = []
     attempts = 0
     seen_artists = set()
+    seen_tracks = set()
     
 
     while attempts < MAX_ATTEMPTS and len(response) < TARGET_PLAYLIST_SIZE:
@@ -56,9 +57,13 @@ async def play(request: Request):
         if not spotify_artist_id:
             continue
 
-        track_uri = await resolve_artist_to_track_uri(spotify_artist_id, access_token)
-        if not track_uri:
+        track_uris = await resolve_artist_to_track_uri(spotify_artist_id, access_token)
+        available_uris = [uri for uri in track_uris if uri not in seen_tracks]
+        if not available_uris:
             continue
+
+        track_uri = random.choice(available_uris)
+        seen_tracks.add(track_uri)
 
         response.append({
             "artist_id": artist_id,
