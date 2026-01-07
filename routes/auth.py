@@ -51,7 +51,15 @@ def handle_login(response: Response):
     client_id = CLIENT_ID
     response_type = "code"
     redirect_uri = REDIRECT_URI
-    scope = "user-read-private user-read-email"
+    scope = (
+        "user-read-private "
+        "user-read-email "
+        "streaming "
+        "user-read-playback-state "
+        "user-modify-playback-state "
+        "playlist-modify-private "
+        "playlist-modify-public"
+    )
     state_string = generate_state_string()
     code_challenge_method = "S256"
     code_verifier = generate_code_verifier()
@@ -146,3 +154,9 @@ def refresh_token_route(request: Request, response: Response):
         raise HTTPException(status_code=api_response.status_code, detail="Token refresh failed.")
     
     return {"access_token": access_token}
+
+@router.get("/logout")
+def logout():
+    api_response = RedirectResponse("/", status_code= 303)
+    api_response.delete_cookie(key="access_token", path="/")
+    return api_response
