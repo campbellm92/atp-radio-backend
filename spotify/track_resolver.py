@@ -1,4 +1,4 @@
-import random, httpx
+import random
 
 from spotify.cache import ARTIST_ID_CACHE, TOP_TRACK_CACHE
 from spotify.spotify_http_client import get_client, spotify_semaphore
@@ -71,7 +71,7 @@ async def resolve_artist_to_track_uri(artist_id, access_token):
 
     uri = random.choice(tracks)["uri"]
     TOP_TRACK_CACHE[artist_id] = uri
-    return uri
+    return [track["uri"] for track in tracks]
 
 
 
