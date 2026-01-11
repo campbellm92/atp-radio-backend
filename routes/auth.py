@@ -15,6 +15,7 @@ STATE_KEY = "spotify_auth_state"
 CODE_VERIFIER_KEY = "spotify_code_verifier"
 URI = os.environ["URI"]
 REDIRECT_URI = URI + "/callback"
+FRONTEND_REDIRECT_URI = "http://127.0.0.1:5173/"
 
 def generate_state_string(length=20):
     characters = string.ascii_letters + string.digits
@@ -51,15 +52,15 @@ def handle_login(response: Response):
     client_id = CLIENT_ID
     response_type = "code"
     redirect_uri = REDIRECT_URI
-    scope = (
-        "user-read-private "
-        "user-read-email "
-        "streaming "
-        "user-read-playback-state "
-        "user-modify-playback-state "
-        "playlist-modify-private "
-        "playlist-modify-public"
-    )
+    scope = " ".join([
+        "user-read-private",
+        "user-read-email",
+        "streaming",
+        "user-read-playback-state",
+        "user-modify-playback-state",
+        "playlist-modify-private",
+        "playlist-modify-public",
+    ])
     state_string = generate_state_string()
     code_challenge_method = "S256"
     code_verifier = generate_code_verifier()
@@ -118,7 +119,7 @@ async def handle_callback(request: Request, response: Response):
         access_token = result["access_token"]
         refresh_token = result["refresh_token"]
 
-        response = RedirectResponse(url=URI)
+        response = RedirectResponse(url=FRONTEND_REDIRECT_URI, status_code=302)
         response.delete_cookie(STATE_KEY)
         response.delete_cookie(CODE_VERIFIER_KEY)
         response.set_cookie(key="access_token", value=access_token, httponly=True, samesite="lax")
