@@ -1,17 +1,37 @@
-import os, random
+import random
 from fastapi import APIRouter, Request, HTTPException
-from fastapi.responses import RedirectResponse
+from pydantic import BaseModel
+from typing import List
 
 from selection.selection import generate_random_artists
 from spotify.track_resolver import resolve_artist_id, resolve_artist_to_track_uri
 
-router = APIRouter()
-
+# config --------------------------------------------------------------
 TARGET_PLAYLIST_SIZE = 12
 MAX_ATTEMPTS = 20
 ALLOW_REPEATS_AFTER = MAX_ATTEMPTS // 2
 
-@router.get("/artists")
+# schemas --------------------------------------------------------------
+class ArtistOut(BaseModel):
+    id: int
+    name: str
+
+class TrackOut(BaseModel):
+    artist_id: int
+    artist_name: str
+    track_uri: str
+
+
+class PlaylistOut(BaseModel):
+    tracks: List[TrackOut]
+    attempts: int
+    requested: int
+    returned: int
+
+# routers --------------------------------------------------------------
+router = APIRouter()
+
+@router.get("/artists", response_model=list[ArtistOut])
 def get_random_artists(request: Request):
     authenticated = bool(request.cookies.get("access_token"))
     if not authenticated:
@@ -27,7 +47,7 @@ def get_random_artists(request: Request):
         response.append(shape)
     return response
 
-@router.get("/play")
+@router.get("/play", response_model=PlaylistOut)
 async def play(request: Request):
     access_token = request.cookies.get("access_token")
     if not access_token:
