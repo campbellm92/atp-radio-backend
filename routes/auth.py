@@ -3,13 +3,13 @@ from dotenv import load_dotenv
 from urllib.parse import urlencode
 from fastapi import APIRouter, Response, Request, HTTPException
 from fastapi.responses import RedirectResponse
+from pydantic import BaseModel
 
 from spotify.spotify_http_client import get_client, spotify_semaphore
 
 load_dotenv()
 
-router = APIRouter()
-
+# config --------------------------------------------------------------
 CLIENT_ID = os.environ["CLIENT_ID"]
 STATE_KEY = "spotify_auth_state"
 CODE_VERIFIER_KEY = "spotify_code_verifier"
@@ -17,6 +17,7 @@ URI = os.environ["URI"]
 REDIRECT_URI = URI + "/callback"
 FRONTEND_REDIRECT_URI = "http://127.0.0.1:5173/"
 
+# helpers --------------------------------------------------------------
 def generate_state_string(length=20):
     characters = string.ascii_letters + string.digits
     return "".join(secrets.choice(characters) for _ in range(length))
@@ -30,17 +31,27 @@ def generate_pkce(code_verifier: str) -> str:
     code_challenge = base64.urlsafe_b64encode(sha256_hash).decode("utf-8").rstrip("=")
     return code_challenge
 
+# schemas --------------------------------------------------------------
+class AuthStatusOut(BaseModel):
+    authenticated: bool
+
+class SpotifyTokenOut(BaseModel):
+    access_token: str
+
+# routers ---------------------------------------------------------------
+router = APIRouter()
+
 @router.get("/")
 def root():
     return {"message": "FastAPI backend is running!"}
 
-@router.get("/auth/status")
+@router.get("/auth/status", response_model=AuthStatusOut)
 def auth_status(request: Request):
     return {
         "authenticated": bool(request.cookies.get("access_token"))
     }
 
-@router.get("/auth/token")
+@router.get("/auth/spotify-token", response_model=SpotifyTokenOut)
 def get_access_token(request: Request):
     token = request.cookies.get("access_token")
     if not token:
@@ -129,32 +140,32 @@ async def handle_callback(request: Request, response: Response):
 
     return response
 
-@router.get("/refresh_token")
-def refresh_token_route(request: Request, response: Response):
-    grant_type = "refresh_token"
-    refresh_token = request.cookies.get("refresh_token")
-    refresh_endpoint = "https://accounts.spotify.com/api/token"
-    client_id = CLIENT_ID
+# @router.get("/refresh_token")
+# def refresh_token_route(request: Request, response: Response):
+#     grant_type = "refresh_token"
+#     refresh_token = request.cookies.get("refresh_token")
+#     refresh_endpoint = "https://accounts.spotify.com/api/token"
+#     client_id = CLIENT_ID
  
-    params = {
-        "grant_type": grant_type,
-        "refresh_token": refresh_token,
-        "client_id": client_id 
-    }
+#     params = {
+#         "grant_type": grant_type,
+#         "refresh_token": refresh_token,
+#         "client_id": client_id 
+#     }
 
-    api_response = requests.post(refresh_endpoint, data=params)
-    print(api_response.status_code, api_response.text)
+#     api_response = requests.post(refresh_endpoint, data=params)
+#     print(api_response.status_code, api_response.text)
 
-    if api_response.status_code == 200:
-        result = api_response.json()
-        access_token = result["access_token"]
-        refresh_token = result.get("refresh_token", refresh_token)
-        if refresh_token in result:
-            response.set_cookie(key="refresh_token", value=refresh_token, httponly=True, samesite="lax")
-    else: 
-        raise HTTPException(status_code=api_response.status_code, detail="Token refresh failed.")
+#     if api_response.status_code == 200:
+#         result = api_response.json()
+#         access_token = result["access_token"]
+#         refresh_token = result.get("refresh_token", refresh_token)
+#         if refresh_token in result:
+#             response.set_cookie(key="refresh_token", value=refresh_token, httponly=True, samesite="lax")
+#     else: 
+#         raise HTTPException(status_code=api_response.status_code, detail="Token refresh failed.")
     
-    return {"access_token": access_token}
+#     return {"access_token": access_token}
 
 @router.get("/logout")
 def logout():
