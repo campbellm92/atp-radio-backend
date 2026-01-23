@@ -11,9 +11,14 @@ from app.spotify.spotify_http_client import get_client, spotify_semaphore
 # config --------------------------------------------------------------
 ROOT = Path(__file__).resolve().parent.parent.parent
 load_dotenv(ROOT / ".env")
+
+ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
+IS_PRODUCTION = ENVIRONMENT == "production"
+
 CLIENT_ID = os.environ["CLIENT_ID"]
 STATE_KEY = "spotify_auth_state"
 CODE_VERIFIER_KEY = "spotify_code_verifier"
+
 URI = os.environ["URI"]
 REDIRECT_URI = URI + "/callback"
 FRONTEND_REDIRECT_URI = "http://127.0.0.1:5173/"
@@ -91,8 +96,22 @@ def handle_login(response: Response):
     auth_url = f"https://accounts.spotify.com/authorize?{urlencode(params)}"
 
     response = RedirectResponse(url=auth_url)
-    response.set_cookie(key=STATE_KEY, value=state_string, httponly=True, samesite="lax")
-    response.set_cookie(key=CODE_VERIFIER_KEY, value=code_verifier, httponly=True, samesite="lax")
+    response.set_cookie(
+        key=STATE_KEY, 
+        value=state_string, 
+        httponly=True, 
+        samesite="lax", 
+        secure=IS_PRODUCTION, 
+        domain=".mattdev.it" if IS_PRODUCTION else None
+    )
+    response.set_cookie(
+        key=CODE_VERIFIER_KEY, 
+        value=code_verifier, 
+        httponly=True, 
+        samesite="lax",
+        secure=IS_PRODUCTION, 
+        domain=".mattdev.it" if IS_PRODUCTION else None
+    )
 
     return response
 
@@ -134,8 +153,22 @@ async def handle_callback(request: Request, response: Response):
         response = RedirectResponse(url=FRONTEND_REDIRECT_URI, status_code=302)
         response.delete_cookie(STATE_KEY)
         response.delete_cookie(CODE_VERIFIER_KEY)
-        response.set_cookie(key="access_token", value=access_token, httponly=True, samesite="lax")
-        response.set_cookie(key="refresh_token", value=refresh_token, httponly=True, samesite="lax")
+        response.set_cookie(
+            key="access_token", 
+            value=access_token, 
+            httponly=True, 
+            samesite="lax",
+            secure=IS_PRODUCTION, 
+            domain=".mattdev.it" if IS_PRODUCTION else None
+        )
+        response.set_cookie(
+            key="refresh_token", 
+            value=refresh_token, 
+            httponly=True, 
+            samesite="lax",
+            secure=IS_PRODUCTION, 
+            domain=".mattdev.it" if IS_PRODUCTION else None
+        )
     else:
         raise HTTPException(status_code=api_response.status_code, detail="Token exchange failed.")
 
