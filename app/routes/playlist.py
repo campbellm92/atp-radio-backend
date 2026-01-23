@@ -3,8 +3,8 @@ from fastapi import APIRouter, Request, HTTPException
 from pydantic import BaseModel
 from typing import List
 
-from selection.selection import generate_random_artists
-from spotify.track_resolver import resolve_artist_id, resolve_artist_to_track_uri
+from app.selection.selection import generate_random_artists
+from app.spotify.track_resolver import resolve_artist_id, resolve_artist_to_track_uri
 
 # config --------------------------------------------------------------
 TARGET_PLAYLIST_SIZE = 12

@@ -1,10 +1,15 @@
 import json, sqlite3
+from pathlib import Path
 
-conn = sqlite3.connect("atp.sqlite")
+ROOT = Path(__file__).resolve().parent.parent
+DB_PATH = ROOT / "data" / "atp.sqlite"
+SEED_DATA = ROOT / "seed" / "atp-lineups.json"
+
+conn = sqlite3.connect(DB_PATH)
 conn.execute("PRAGMA foreign_keys = ON;")
 cur = conn.cursor()
 
-with open("atp-lineups.json") as f:
+with open(SEED_DATA) as f:
     data = json.load(f)
 
 for edition in data:

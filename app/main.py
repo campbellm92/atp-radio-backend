@@ -1,11 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from dotenv import load_dotenv
-from routes import auth, playlist
 
-from spotify.spotify_http_client import start_client, stop_client
-
-load_dotenv()
+from app.routes import auth, playlist
+from app.spotify.spotify_http_client import start_client, stop_client
 
 app = FastAPI()
 

@@ -1,7 +1,5 @@
-import random
-
-from spotify.cache import ARTIST_ID_CACHE, TOP_TRACK_CACHE
-from spotify.spotify_http_client import get_client, spotify_semaphore
+from app.spotify.cache import ARTIST_ID_CACHE, TOP_TRACK_CACHE
+from app.spotify.spotify_http_client import get_client, spotify_semaphore
 
 async def resolve_artist_id(artist_name, access_token):
     spotify_http_client = get_client()

@@ -1,15 +1,16 @@
-import os, secrets, string, hashlib, base64, requests
+import os, secrets, string, hashlib, base64
+from pathlib import Path
 from dotenv import load_dotenv
 from urllib.parse import urlencode
 from fastapi import APIRouter, Response, Request, HTTPException
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 
-from spotify.spotify_http_client import get_client, spotify_semaphore
-
-load_dotenv()
+from app.spotify.spotify_http_client import get_client, spotify_semaphore
 
 # config --------------------------------------------------------------
+ROOT = Path(__file__).resolve().parent.parent.parent
+load_dotenv(ROOT / ".env")
 CLIENT_ID = os.environ["CLIENT_ID"]
 STATE_KEY = "spotify_auth_state"
 CODE_VERIFIER_KEY = "spotify_code_verifier"
