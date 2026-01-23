@@ -11,9 +11,9 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://127.0.0.1:5173"],
+    allow_origins=["http://127.0.0.1:5173", "https://atp-radio.mattdev.it"],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
 
@@ -22,8 +22,7 @@ app.include_router(playlist.router)
 
 @app.get("/")
 def root():
-    return {"message": "API Radio playlist generator API."}
-
+    return {"status": "ok"}
 
 @app.on_event("startup")
 async def startup():
