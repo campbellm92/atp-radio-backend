@@ -10,7 +10,7 @@ from app.spotify.spotify_http_client import get_client, spotify_semaphore
 
 # config --------------------------------------------------------------
 ROOT = Path(__file__).resolve().parent.parent.parent
-load_dotenv(ROOT / ".env")
+load_dotenv(ROOT / ".env", override=True)
 
 ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 IS_PRODUCTION = ENVIRONMENT == "production"
