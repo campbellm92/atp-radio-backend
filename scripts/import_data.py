@@ -2,7 +2,7 @@ import json, sqlite3
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-DB_PATH = ROOT / "data" / "atp.sqlite"
+DB_PATH = ROOT / "data" / "atp.db"
 SEED_DATA = ROOT / "seed" / "atp-lineups.json"
 
 conn = sqlite3.connect(DB_PATH)

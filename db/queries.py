@@ -2,7 +2,7 @@ import sqlite3
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-DB_PATH = ROOT / "data" / "atp.sqlite"
+DB_PATH = ROOT / "data" / "atp.db"
 
 def get_db():
     return sqlite3.connect(DB_PATH)
