@@ -3,5 +3,6 @@ __pycache__/
 venv/
 .env
 .env.*
-*.sqlite
+data/*.sqlite
+data/*.db
 notes.txt
