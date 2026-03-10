@@ -37,6 +37,32 @@ def generate_pkce(code_verifier: str) -> str:
     code_challenge = base64.urlsafe_b64encode(sha256_hash).decode("utf-8").rstrip("=")
     return code_challenge
 
+async def refresh_access_token(refresh_token: str):
+    spotify_http_client = get_client()
+    refresh_endpoint = "https://accounts.spotify.com/api/token"
+
+    params = {
+        "grant_type": "refresh_token",
+        "refresh_token": refresh_token,
+        "client_id": CLIENT_ID
+    }
+
+    async with spotify_semaphore:
+        api_response = await spotify_http_client.post(refresh_endpoint, data=params)
+
+    if api_response.status_code != 200:
+        raise HTTPException(
+            status_code=api_response.status_code,
+            detail="Token refresh failed"
+        )
+
+    result = api_response.json()
+
+    return {
+        "access_token": result["access_token"],
+        "refresh_token": result.get("refresh_token")
+    }
+
 # schemas --------------------------------------------------------------
 class AuthStatusOut(BaseModel):
     authenticated: bool
@@ -45,24 +71,51 @@ class SpotifyTokenOut(BaseModel):
     access_token: str
 
 # routers ---------------------------------------------------------------
+
 router = APIRouter()
 
 @router.get("/")
 def root():
     return {"message": "FastAPI backend is running!"}
 
-@router.get("/auth/status", response_model=AuthStatusOut)
+@router.get("/status", response_model=AuthStatusOut)
 def auth_status(request: Request):
     return {
         "authenticated": bool(request.cookies.get("access_token"))
     }
 
-@router.get("/auth/spotify-token", response_model=SpotifyTokenOut)
-def get_access_token(request: Request):
-    token = request.cookies.get("access_token")
-    if not token:
+@router.get("/spotify-token", response_model=SpotifyTokenOut)
+async def get_access_token(request: Request, response: Response):
+
+    refresh_token = request.cookies.get("refresh_token")
+
+    if not refresh_token:
         raise HTTPException(status_code=401, detail="Not authenticated")
-    return {"access_token": token}
+
+    tokens = await refresh_access_token(refresh_token)
+
+    new_access_token = tokens["access_token"]
+    new_refresh_token = tokens.get("refresh_token", refresh_token)
+
+    response.set_cookie(
+        key="access_token",
+        value=new_access_token,
+        httponly=True,
+        samesite="lax",
+        secure=IS_PRODUCTION,
+        domain=".mattdev.it" if IS_PRODUCTION else None
+    )
+
+    response.set_cookie(
+        key="refresh_token",
+        value=new_refresh_token,
+        httponly=True,
+        samesite="lax",
+        secure=IS_PRODUCTION,
+        domain=".mattdev.it" if IS_PRODUCTION else None
+    )
+
+    return {"access_token": new_access_token}
 
 @router.get("/login")
 def handle_login(response: Response):
@@ -174,35 +227,18 @@ async def handle_callback(request: Request, response: Response):
 
     return response
 
-# @router.get("/refresh_token")
-# def refresh_token_route(request: Request, response: Response):
-#     grant_type = "refresh_token"
-#     refresh_token = request.cookies.get("refresh_token")
-#     refresh_endpoint = "https://accounts.spotify.com/api/token"
-#     client_id = CLIENT_ID
- 
-#     params = {
-#         "grant_type": grant_type,
-#         "refresh_token": refresh_token,
-#         "client_id": client_id 
-#     }
-
-#     api_response = requests.post(refresh_endpoint, data=params)
-#     print(api_response.status_code, api_response.text)
-
-#     if api_response.status_code == 200:
-#         result = api_response.json()
-#         access_token = result["access_token"]
-#         refresh_token = result.get("refresh_token", refresh_token)
-#         if refresh_token in result:
-#             response.set_cookie(key="refresh_token", value=refresh_token, httponly=True, samesite="lax")
-#     else: 
-#         raise HTTPException(status_code=api_response.status_code, detail="Token refresh failed.")
-    
-#     return {"access_token": access_token}
-
 @router.get("/logout")
 def logout():
     api_response = RedirectResponse("/", status_code= 303)
-    api_response.delete_cookie(key="access_token", path="/")
+    api_response.delete_cookie(
+        "access_token",
+        path="/",
+        domain=".mattdev.it" if IS_PRODUCTION else None
+    )
+
+    api_response.delete_cookie(
+        "refresh_token",
+        path="/",
+        domain=".mattdev.it" if IS_PRODUCTION else None
+    )
     return api_response
