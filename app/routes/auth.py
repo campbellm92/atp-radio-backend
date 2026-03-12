@@ -19,10 +19,6 @@ CLIENT_ID = os.environ["CLIENT_ID"]
 STATE_KEY = "spotify_auth_state"
 CODE_VERIFIER_KEY = "spotify_code_verifier"
 
-URI = os.environ["URI"]
-REDIRECT_URI = URI + "/callback"
-FRONTEND_REDIRECT_URI = "http://127.0.0.1:5173/"
-
 # helpers --------------------------------------------------------------
 def generate_state_string(length=20):
     characters = string.ascii_letters + string.digits
@@ -118,10 +114,10 @@ async def get_access_token(request: Request, response: Response):
     return {"access_token": new_access_token}
 
 @router.get("/login")
-def handle_login(response: Response):
+def handle_login(request: Request, response: Response):
+    redirect_uri = str(request.base_url) + "auth/callback"
     client_id = CLIENT_ID
     response_type = "code"
-    redirect_uri = REDIRECT_URI
     scope = " ".join([
         "user-read-private",
         "user-read-email",
@@ -149,6 +145,7 @@ def handle_login(response: Response):
     auth_url = f"https://accounts.spotify.com/authorize?{urlencode(params)}"
 
     response = RedirectResponse(url=auth_url)
+
     response.set_cookie(
         key=STATE_KEY, 
         value=state_string, 
@@ -165,16 +162,15 @@ def handle_login(response: Response):
         secure=IS_PRODUCTION, 
         domain=".mattdev.it" if IS_PRODUCTION else None
     )
-
     return response
 
 @router.get("/callback")
 async def handle_callback(request: Request, response: Response):
     spotify_http_client = get_client()
+    redirect_uri = str(request.base_url) + "auth/callback"
     client_id = CLIENT_ID
     grant_type = "authorization_code"
     spotify_code = request.query_params.get("code")
-    redirect_uri = REDIRECT_URI
     state = request.query_params.get("state")
     stored_state = request.cookies.get(STATE_KEY)
     code_verifier = request.cookies.get(CODE_VERIFIER_KEY)
@@ -202,10 +198,17 @@ async def handle_callback(request: Request, response: Response):
         result = api_response.json()
         access_token = result["access_token"]
         refresh_token = result["refresh_token"]
+        frontend_redirect = (
+            "http://127.0.0.1:5173/"
+            if request.base_url.hostname == "127.0.0.1"
+            else "https://atp-radio.mattdev.it/"
+        )
 
-        response = RedirectResponse(url=FRONTEND_REDIRECT_URI, status_code=302)
+        response = RedirectResponse(url=frontend_redirect, status_code=302)
+
         response.delete_cookie(STATE_KEY)
         response.delete_cookie(CODE_VERIFIER_KEY)
+        
         response.set_cookie(
             key="access_token", 
             value=access_token, 
