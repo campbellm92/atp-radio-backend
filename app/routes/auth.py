@@ -70,10 +70,6 @@ class SpotifyTokenOut(BaseModel):
 
 router = APIRouter()
 
-@router.get("/")
-def root():
-    return {"message": "FastAPI backend is running!"}
-
 @router.get("/status", response_model=AuthStatusOut)
 def auth_status(request: Request):
     return {
